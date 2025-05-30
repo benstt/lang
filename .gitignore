@@ -1,5 +1,5 @@
 # let's ignore the silly examples for now :)
 *.swp
 examples/**/*
-lang
+seh
 tags
