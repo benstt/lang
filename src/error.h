@@ -22,6 +22,8 @@
 #ifndef ERROR_H
 #define ERROR_H
 
+#define MAX_ERROR_SIZE_FOR_SCOPE 64 * sizeof(scoped_error_node_t)
+
 enum error_kind
 {
     ERRORK_NO_ERROR,
@@ -29,19 +31,27 @@ enum error_kind
 };
 typedef enum error_kind error_kind_t;
 
-struct scoped_error
+struct scoped_error_node
 {
     error_kind_t error_kind;
     token_t* token;
 
-    struct scoped_error* previous_error;
-    struct scoped_error* next_error;
+    struct scoped_error_node* previous_error;
+    struct scoped_error_node* next_error;
+};
+typedef struct scoped_error_node scoped_error_node_t;
+
+struct scoped_error
+{
+    arena_t arena;
+    byte* buffer[MAX_ERROR_SIZE_FOR_SCOPE];
+    scoped_error_node_t* root;
 };
 typedef struct scoped_error scoped_error_t;
 
 scoped_error_t ERROR_MakeScoped();
-void ERROR_PushScope(scoped_error_t* error, arena_t* scratch, error_kind_t kind, token_t* token);
+void ERROR_PushScope(scoped_error_t* error, error_kind_t kind, token_t* token);
 void ERROR_ReportScope(scoped_error_t* error);
-void ERROR_Report(scoped_error_t* error);
+void ERROR_Report(scoped_error_node_t* error);
 
 #endif // ERROR_H

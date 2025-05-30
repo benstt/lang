@@ -232,7 +232,7 @@ ast_declaration_t* PARSER_ParseFunction(parser_t* parser, arena_t* scratch)
     PARSER_ConsumeToken(parser); // functionName @TODO: or struct tag.
     if (parser->current_token.kind != TK_PARENTHESIS_OPEN) {
         // @FIXME: Provide some kind of "synchronization" to skip to the next valid token.
-        ERROR_PushScope(&scoped_error, &scope_arena, ERRORK_UNEXPECTED_TOKEN, &parser->current_token);
+        ERROR_PushScope(&scoped_error, ERRORK_UNEXPECTED_TOKEN, &parser->current_token);
     }
 
     PARSER_ConsumeToken(parser); // `(`
@@ -257,7 +257,7 @@ ast_declaration_t* PARSER_ParseFunction(parser_t* parser, arena_t* scratch)
             }
 
             if (parser->current_token.kind != TK_COMMA) {
-                ERROR_PushScope(&scoped_error, &scope_arena, ERRORK_UNEXPECTED_TOKEN, &parser->current_token);
+                ERROR_PushScope(&scoped_error, ERRORK_UNEXPECTED_TOKEN, &parser->current_token);
             }
             PARSER_ConsumeToken(parser); // `,`
         }

@@ -22,26 +22,33 @@
 scoped_error_t ERROR_MakeScoped()
 {
     scoped_error_t scoped_error;
-    scoped_error.error_kind = ERRORK_NO_ERROR;
-    scoped_error.token = null;
-    scoped_error.previous_error = null;
-    scoped_error.next_error = null;
+    scoped_error.root = null;
+
+    ARENA_Initialize(
+            &scoped_error.arena,
+            scoped_error.buffer,
+            MAX_ERROR_SIZE_FOR_SCOPE);
+
     return scoped_error;
 }
 
-void ERROR_PushScope(scoped_error_t* root, arena_t* scratch, error_kind_t kind, token_t* token)
+void ERROR_PushScope(scoped_error_t* error, error_kind_t kind, token_t* token)
 {
-    scoped_error_t* tail = root;
-    while (tail != null && tail->next_error != null) {
-        tail = tail->next_error;
+    assert(error);
+
+    scoped_error_node_t* last_error_in_chain = error->root;
+    while (last_error_in_chain != null && last_error_in_chain->next_error != null) {
+        last_error_in_chain = last_error_in_chain->next_error;
     }
 
-    scoped_error_t* new_error = cast(scoped_error_t*) ARENA_Alloc(scratch, sizeof(scoped_error_t));
+    scoped_error_node_t* new_error =
+        cast(scoped_error_node_t*) ARENA_Alloc(&error->arena, sizeof(scoped_error_node_t));
+
     new_error->error_kind = kind;
     new_error->token = token;
-    new_error->previous_error = tail;
+    new_error->previous_error = last_error_in_chain;
     new_error->next_error = null;
-    tail->next_error = new_error;
+    last_error_in_chain->next_error = new_error;
 }
 
 void ERROR_ReportScope(scoped_error_t* error)
@@ -50,14 +57,16 @@ void ERROR_ReportScope(scoped_error_t* error)
     // i.e., with all errors applied to a single message. If possible, we don't want
     // the user to think much about what the error is, but rather make it clearly visible
     // where the errors are.
-    scoped_error_t* current_error = error;
+    assert(error);
+
+    scoped_error_node_t* current_error = error->root;
     while (current_error != null) {
         ERROR_Report(current_error);
         current_error = current_error->next_error;
     }
 }
 
-void ERROR_Report(scoped_error_t* error)
+void ERROR_Report(scoped_error_node_t* error)
 {
     switch (error->error_kind) {
         case ERRORK_UNEXPECTED_TOKEN: {
