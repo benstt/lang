@@ -33,16 +33,16 @@
 #include "base/io.h"
 
 #include "lex.h"
-#include "ast.h"
 #include "error.h"
+#include "ast.h"
 #include "parse.h"
 
 #include "base/arena.c"
 #include "base/string.c"
 #include "base/io.c"
 #include "lex.c"
-#include "ast.c"
 #include "error.c"
+#include "ast.c"
 #include "parse.c"
 
 int main(int argc, char** argv)
