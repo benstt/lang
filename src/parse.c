@@ -125,9 +125,9 @@ ast_statement_t* PARSER_ParseStatement(parser_t* parser)
 
     if (parser->current_token.kind == TK_NUMBER_LITERAL) {
         stmt = PARSER_ParseExpression(parser, 0, &scratch);
-    } else if (parser->next_token.kind == TK_ASSIGNMENT_OPERATOR) {
+    } else if (parser->current_token.kind == TK_ASSIGNMENT_OPERATOR) {
         stmt = PARSER_ParseAssignment(parser, &scratch);
-    } else if (parser->next_token.kind == TK_FUN) {
+    } else if (parser->current_token.kind == TK_FUN) {
         // @FIXME: We should separate "statements" from "declarations".
         stmt = cast(ast_statement_t*) PARSER_ParseFunction(parser, &scratch);
     }
@@ -202,7 +202,7 @@ ast_statement_t* PARSER_ParseAssignment(parser_t* parser, arena_t* scratch)
 ast_declaration_t* PARSER_ParseFunction(parser_t* parser, arena_t* scratch)
 {
     // fun [(StructName)] functionName([args...]) -> returnType { [body] }
-    scoped_error_t scoped_error;
+    scoped_error_t scoped_error = ERROR_MakeScoped();
     ast_node_t* fun_keyword = AST_CREATE_NODE(scratch);
     assert(fun_keyword);
 
@@ -263,6 +263,10 @@ ast_declaration_t* PARSER_ParseFunction(parser_t* parser, arena_t* scratch)
         }
     } else {
         PARSER_ConsumeToken(parser); // `)`
+    }
+
+    if (parser->current_token.kind != TK_THIN_ARROW) {
+        ERROR_PushScope(&scoped_error, ERRORK_UNEXPECTED_TOKEN, &parser->current_token);
     }
 
     // Consume the return type arrow.

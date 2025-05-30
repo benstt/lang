@@ -26,7 +26,7 @@ scoped_error_t ERROR_MakeScoped()
 
     ARENA_Initialize(
             &scoped_error.arena,
-            scoped_error.buffer,
+            &scoped_error.buffer,
             MAX_ERROR_SIZE_FOR_SCOPE);
 
     return scoped_error;
@@ -36,18 +36,27 @@ void ERROR_PushScope(scoped_error_t* error, error_kind_t kind, token_t* token)
 {
     assert(error);
 
-    scoped_error_node_t* last_error_in_chain = error->root;
-    while (last_error_in_chain != null && last_error_in_chain->next_error != null) {
-        last_error_in_chain = last_error_in_chain->next_error;
-    }
-
     scoped_error_node_t* new_error =
         cast(scoped_error_node_t*) ARENA_Alloc(&error->arena, sizeof(scoped_error_node_t));
 
+    assert(new_error);
+
     new_error->error_kind = kind;
     new_error->token = token;
-    new_error->previous_error = last_error_in_chain;
+    new_error->previous_error = null;
     new_error->next_error = null;
+
+    if (error->root == null) {
+        error->root = new_error;
+        return;
+    }
+
+    scoped_error_node_t* last_error_in_chain = error->root;
+    while (last_error_in_chain->next_error != null) {
+        last_error_in_chain = last_error_in_chain->next_error;
+    }
+
+    new_error->previous_error = last_error_in_chain;
     last_error_in_chain->next_error = new_error;
 }
 
