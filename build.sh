@@ -9,7 +9,7 @@ SANITIZER_FLAGS="-fsanitize=undefined"
 INCLUDE_FLAGS="-Isrc"
 
 set -x
-time gcc $INCLUDE_FLAGS $COMPILER_FLAGS $SANITIZER_FLAGS main.c -o lang || exit 1
+time gcc $INCLUDE_FLAGS $COMPILER_FLAGS $SANITIZER_FLAGS main.c -o seh || exit 1
 set +x
 
 echo
