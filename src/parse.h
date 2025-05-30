@@ -51,11 +51,13 @@ uint PARSER_OperatorPrecedence(token_kind_t op);
 operator_associativity_type_t PARSER_OperatorAssociativity(token_kind_t op);
 
 /* Parsing functions */
+// @TODO: Change the name from `scratch` to something else...
 ast_statement_t* PARSER_ParseStatement(parser_t* parser);
 ast_expression_t* PARSER_ParseExpression(parser_t* parser, uint8 prec_limit, arena_t* scratch);
 ast_statement_t* PARSER_ParseIdentifier(parser_t* parser);
 ast_statement_t* PARSER_ParseAssignment(parser_t* parser, arena_t* scratch);
 ast_declaration_t* PARSER_ParseFunction(parser_t* parser, arena_t* scratch);
+ast_body_t* PARSER_ParseBody(parser_t* parser, arena_t* scratch);
 ast_name_with_type_t* PARSER_ParseNameWithType(parser_t* parser, arena_t* scratch);
 
 void PARSER_DumpAST(parser_t* parser, ast_program_t* root);

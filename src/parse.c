@@ -272,6 +272,12 @@ ast_declaration_t* PARSER_ParseFunction(parser_t* parser, arena_t* scratch)
     // Consume the return type arrow.
     PARSER_ConsumeToken(parser); // `->`
 
+    // @FIXME: This overwrites the error above and causes some issues.
+    // @FIXME: This does not take into account the previous error. Have to synchronize.
+    if (parser->current_token.kind != TK_IDENTIFIER) {
+        ERROR_PushScope(&scoped_error, ERRORK_UNEXPECTED_TOKEN, &parser->current_token);
+    }
+
     ast_identifier_t* return_type = AST_CREATE_NODE(scratch);
     return_type->kind = ASTK_FUNCTION_RETURN_TYPE;
     return_type->token = parser->current_token;
@@ -280,10 +286,34 @@ ast_declaration_t* PARSER_ParseFunction(parser_t* parser, arena_t* scratch)
 
     decl->function.name = name;
     decl->function.signature = signature;
-    decl->function.body = NULL; // @TODO: Implement body.
+    // @FIXME: PARSE_ParseBody() overwrites error scope somehow.
+    // decl->function.body = PARSER_ParseBody(parser, scratch);
 
+    // @TODO: Merge errors from body.
     ERROR_ReportScope(&scoped_error);
     return decl;
+}
+
+ast_body_t* PARSER_ParseBody(parser_t* parser, arena_t* scratch)
+{
+    // @TODO; for now, just expect the curly braces.
+    ast_body_t* body = AST_CREATE_NODE(scratch);
+    assert(body);
+
+    body->errors = ERROR_MakeScoped();
+    if (parser->current_token.kind != TK_CURLY_BRACE_OPEN) {
+        ERROR_PushScope(&body->errors, ERRORK_UNEXPECTED_TOKEN, &parser->current_token);
+    }
+
+    PARSER_ConsumeToken(parser); // `{`
+
+    if (parser->current_token.kind != TK_CURLY_BRACE_CLOSE) {
+        ERROR_PushScope(&body->errors, ERRORK_UNEXPECTED_TOKEN, &parser->current_token);
+    }
+
+    PARSER_ConsumeToken(parser); // `}`
+
+    return body;
 }
 
 ast_name_with_type_t* PARSER_ParseNameWithType(parser_t* parser, arena_t* scratch)

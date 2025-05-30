@@ -91,11 +91,18 @@ struct ast_type_signature
 };
 typedef struct ast_type_signature ast_type_signature_t;
 
+struct ast_body
+{
+    ast_statement_t* statements;
+    scoped_error_t errors;
+};
+typedef struct ast_body ast_body_t;
+
 struct ast_function_declaration
 {
     ast_identifier_t* name;
     ast_type_signature_t* signature;
-    ast_node_t* body;
+    ast_body_t* body;
 };
 typedef struct ast_function_declaration ast_function_declaration_t;
 
